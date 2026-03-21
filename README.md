@@ -1,6 +1,6 @@
-# skilib
+# skibundle
 
-`skilib` is a Rust-based toolkit that wraps and validates external CLI binaries or codebases so they can be consumed consistently across the ski.ai ecosystem.
+`skibundle` is a Rust-based toolkit that wraps and validates external CLI binaries or codebases so they can be consumed consistently across the ski.ai ecosystem.
 
 ## What it does
 
@@ -10,9 +10,9 @@
 
 ## Commands
 
-- `skilib wrap --name <skill-name> --binary <path> --codebase <path> [--out <manifest-path>]`
-- `skilib validate --manifest <manifest-path>`
-- `skilib inspect --manifest <manifest-path>`
+- `skibundle wrap --name <skill-name> --binary <path> --codebase <path> [--out <manifest-path>]`
+- `skibundle validate --manifest <manifest-path>`
+- `skibundle inspect --manifest <manifest-path>`
 
 ## Example
 
