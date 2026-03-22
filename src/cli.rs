@@ -13,8 +13,6 @@ pub enum Commands {
     Bundle(BundleArgs),
     Validate(ValidateArgs),
     Inspect(InspectArgs),
-    Version(VersionArgs),
-    Skill(SkillArgs),
 }
 
 #[derive(Debug, Args)]
@@ -62,16 +60,3 @@ pub struct InspectArgs {
     pub manifest: PathBuf,
 }
 
-#[derive(Debug, Args)]
-pub struct VersionArgs {
-    /// Path to the manifest file
-    #[arg(long)]
-    pub manifest: Option<PathBuf>,
-}
-
-#[derive(Debug, Args)]
-pub struct SkillArgs {
-    /// Path to the manifest file
-    #[arg(long)]
-    pub manifest: Option<PathBuf>,
-}

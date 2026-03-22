@@ -9,8 +9,6 @@ fn main() {
         Commands::Bundle(args) => skilib::bundle::run(args),
         Commands::Validate(args) => validate_cmd::run(args),
         Commands::Inspect(args) => skilib::inspect::run(args),
-        Commands::Version(args) => skilib::injected::version::run(args),
-        Commands::Skill(args) => skilib::injected::skill::run(args),
     };
 
     if let Err(e) = result {
