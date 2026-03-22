@@ -1,16 +1,15 @@
 use colored::Colorize;
-use std::path::PathBuf;
 
 use crate::cli::SkillArgs;
+use crate::error::{AppError, Result};
 use crate::manifest::BundleManifest;
 
-pub fn run(args: &SkillArgs) -> crate::error::Result<()> {
-    let manifest_path = args
-        .manifest
-        .clone()
-        .unwrap_or_else(|| PathBuf::from("skill.manifest.json"));
+pub fn run(args: &SkillArgs) -> Result<()> {
+    let path = args.manifest.as_ref().ok_or_else(|| {
+        AppError::Other("--manifest <path> is required for ski skill".into())
+    })?;
 
-    let manifest = BundleManifest::load(&manifest_path)?;
+    let manifest = BundleManifest::load(path)?;
 
     println!("{}", format!("=== Skill: {} ===", manifest.name).bold());
     println!("  Bundled:   {}", manifest.created_at);
