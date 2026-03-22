@@ -1,5 +1,4 @@
-use std::path::Path;
-use std::fs;
+use crate::codebase::CliCodebase;
 use super::{CheckResult, Validator};
 
 pub struct HasTestsValidator;
@@ -9,49 +8,19 @@ impl Validator for HasTestsValidator {
         "has_tests"
     }
 
-    fn check(&self, codebase: &Path) -> CheckResult {
-        // Check for a tests/ directory at the codebase root
-        let tests_dir = codebase.join("tests");
-        if tests_dir.is_dir() {
-            return CheckResult {
+    fn check(&self, codebase: &CliCodebase) -> CheckResult {
+        if codebase.properties.has_tests {
+            CheckResult {
                 name: self.name(),
                 passed: true,
-                message: "Found tests/ directory".to_string(),
-            };
-        }
-
-        // Scan src/*.rs files for #[test]
-        let src_dir = codebase.join("src");
-        if src_dir.is_dir() {
-            if let Ok(entries) = fs::read_dir(&src_dir) {
-                for entry in entries.flatten() {
-                    let path = entry.path();
-                    if path.extension().and_then(|e| e.to_str()) == Some("rs") {
-                        if let Ok(contents) = fs::read_to_string(&path) {
-                            if contents.contains("#[test]") {
-                                let file_name = path
-                                    .file_name()
-                                    .and_then(|n| n.to_str())
-                                    .unwrap_or("unknown");
-                                return CheckResult {
-                                    name: self.name(),
-                                    passed: true,
-                                    message: format!(
-                                        "Found #[test] attribute in src/{}",
-                                        file_name
-                                    ),
-                                };
-                            }
-                        }
-                    }
-                }
+                message: "Found tests".to_string(),
             }
-        }
-
-        CheckResult {
-            name: self.name(),
-            passed: false,
-            message: "No tests found".to_string(),
+        } else {
+            CheckResult {
+                name: self.name(),
+                passed: false,
+                message: "No tests found".to_string(),
+            }
         }
     }
 }
@@ -59,6 +28,7 @@ impl Validator for HasTestsValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codebase::CliCodebase;
     use tempfile::TempDir;
     use std::fs;
 
@@ -66,9 +36,9 @@ mod tests {
     fn passes_with_tests_directory() {
         let tmp = TempDir::new().unwrap();
         fs::create_dir(tmp.path().join("tests")).unwrap();
-        let result = HasTestsValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = HasTestsValidator.check(&cb);
         assert!(result.passed);
-        assert!(result.message.contains("tests/"));
     }
 
     #[test]
@@ -81,10 +51,9 @@ mod tests {
             "#[cfg(test)]\nmod tests {\n    #[test]\n    fn it_works() {}\n}\n",
         )
         .unwrap();
-        let result = HasTestsValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = HasTestsValidator.check(&cb);
         assert!(result.passed);
-        assert!(result.message.contains("#[test]"));
-        assert!(result.message.contains("lib.rs"));
     }
 
     #[test]
@@ -93,7 +62,8 @@ mod tests {
         let src_dir = tmp.path().join("src");
         fs::create_dir(&src_dir).unwrap();
         fs::write(src_dir.join("main.rs"), "fn main() {}\n").unwrap();
-        let result = HasTestsValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = HasTestsValidator.check(&cb);
         assert!(!result.passed);
         assert_eq!(result.message, "No tests found");
     }

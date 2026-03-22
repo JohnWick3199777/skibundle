@@ -25,6 +25,7 @@ mod validate_cmd {
     use colored::Colorize;
     use skilib::{
         cli::ValidateArgs,
+        codebase::CliCodebase,
         error::{AppError, Result},
         manifest::{self, BundleManifest},
         validate,
@@ -42,8 +43,8 @@ mod validate_cmd {
     }
 
     fn validate_path(path: &PathBuf, strict: bool) -> Result<()> {
-        let path = path.canonicalize()?;
-        let report = validate::run_all(&path);
+        let codebase = CliCodebase::from_path(path)?;
+        let report = validate::run_all(&codebase);
         print_report(&report);
         if strict && !report.passed() {
             return Err(AppError::ValidationFailed {
@@ -55,8 +56,8 @@ mod validate_cmd {
 
     fn validate_manifest(mpath: &PathBuf, strict: bool) -> Result<()> {
         let manifest = BundleManifest::load(mpath)?;
-
-        let report = validate::run_all(&manifest.codebase_path);
+        let codebase = CliCodebase::from_path(&manifest.codebase_path)?;
+        let report = validate::run_all(&codebase);
         print_report(&report);
 
         let current_sha = manifest::compute_sha256(&manifest.binary_path)?;

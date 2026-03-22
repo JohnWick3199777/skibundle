@@ -1,4 +1,4 @@
-use std::path::Path;
+use crate::codebase::CliCodebase;
 use super::{CheckResult, Validator};
 
 pub struct HasReadmeValidator;
@@ -8,22 +8,19 @@ impl Validator for HasReadmeValidator {
         "has_readme"
     }
 
-    fn check(&self, codebase: &Path) -> CheckResult {
-        let candidates = ["README.md", "README"];
-        for candidate in &candidates {
-            let path = codebase.join(candidate);
-            if path.exists() {
-                return CheckResult {
-                    name: self.name(),
-                    passed: true,
-                    message: format!("Found {}", candidate),
-                };
+    fn check(&self, codebase: &CliCodebase) -> CheckResult {
+        if codebase.properties.has_readme {
+            CheckResult {
+                name: self.name(),
+                passed: true,
+                message: "Found README".to_string(),
             }
-        }
-        CheckResult {
-            name: self.name(),
-            passed: false,
-            message: "No README.md or README found".to_string(),
+        } else {
+            CheckResult {
+                name: self.name(),
+                passed: false,
+                message: "No README.md or README found".to_string(),
+            }
         }
     }
 }
@@ -31,6 +28,7 @@ impl Validator for HasReadmeValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codebase::CliCodebase;
     use tempfile::TempDir;
     use std::fs;
 
@@ -38,16 +36,18 @@ mod tests {
     fn passes_with_readme_md() {
         let tmp = TempDir::new().unwrap();
         fs::write(tmp.path().join("README.md"), "# Project").unwrap();
-        let result = HasReadmeValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = HasReadmeValidator.check(&cb);
         assert!(result.passed);
-        assert!(result.message.contains("README.md"));
+        assert!(result.message.contains("README"));
     }
 
     #[test]
     fn passes_with_plain_readme() {
         let tmp = TempDir::new().unwrap();
         fs::write(tmp.path().join("README"), "Project info").unwrap();
-        let result = HasReadmeValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = HasReadmeValidator.check(&cb);
         assert!(result.passed);
         assert!(result.message.contains("README"));
     }
@@ -55,7 +55,8 @@ mod tests {
     #[test]
     fn fails_when_no_readme() {
         let tmp = TempDir::new().unwrap();
-        let result = HasReadmeValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = HasReadmeValidator.check(&cb);
         assert!(!result.passed);
         assert_eq!(result.message, "No README.md or README found");
     }

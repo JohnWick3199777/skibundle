@@ -3,14 +3,15 @@ use std::path::Path;
 
 use crate::{
     cli::BundleArgs,
+    codebase::CliCodebase,
     error::{AppError, Result},
     manifest::{self, BundleManifest},
     validate,
 };
 
 pub fn run(args: &BundleArgs) -> Result<()> {
-    // 1. Canonicalize paths, returning a clear error if either doesn't exist.
-    let codebase_path = args.codebase.canonicalize().map_err(|_| {
+    // 1. Load codebase (canonicalizes path and detects properties).
+    let codebase = CliCodebase::from_path(&args.codebase).map_err(|_| {
         AppError::Other(format!(
             "Codebase path does not exist or is inaccessible: {}",
             args.codebase.display()
@@ -28,7 +29,7 @@ pub fn run(args: &BundleArgs) -> Result<()> {
     let (passed_names, failed_names) = if args.skip_validation {
         (Vec::new(), Vec::new())
     } else {
-        let report = validate::run_all(&codebase_path);
+        let report = validate::run_all(&codebase);
 
         for result in &report.results {
             if result.passed {
@@ -57,7 +58,7 @@ pub fn run(args: &BundleArgs) -> Result<()> {
     // 4. Construct the manifest.
     let bundle_manifest = BundleManifest::new(
         args.name.clone(),
-        codebase_path,
+        codebase.path,
         binary_path,
         sha256,
         passed_names,

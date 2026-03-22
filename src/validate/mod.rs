@@ -1,4 +1,4 @@
-use std::path::Path;
+use crate::codebase::CliCodebase;
 
 pub mod is_git;
 pub mod has_readme;
@@ -15,7 +15,7 @@ pub struct CheckResult {
 
 pub trait Validator: Send + Sync {
     fn name(&self) -> &'static str;
-    fn check(&self, codebase: &Path) -> CheckResult;
+    fn check(&self, codebase: &CliCodebase) -> CheckResult;
 }
 
 pub struct ValidationReport {
@@ -48,7 +48,7 @@ impl ValidationReport {
     }
 }
 
-pub fn run_all(codebase: &Path) -> ValidationReport {
+pub fn run_all(codebase: &CliCodebase) -> ValidationReport {
     let validators: Vec<Box<dyn Validator>> = vec![
         Box::new(is_git::IsGitValidator),
         Box::new(has_readme::HasReadmeValidator),

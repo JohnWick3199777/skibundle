@@ -1,4 +1,4 @@
-use std::path::Path;
+use crate::codebase::CliCodebase;
 use super::{CheckResult, Validator};
 
 pub struct IsGitValidator;
@@ -8,9 +8,8 @@ impl Validator for IsGitValidator {
         "is_git"
     }
 
-    fn check(&self, codebase: &Path) -> CheckResult {
-        let git_dir = codebase.join(".git");
-        if git_dir.is_dir() {
+    fn check(&self, codebase: &CliCodebase) -> CheckResult {
+        if codebase.properties.is_git {
             CheckResult {
                 name: self.name(),
                 passed: true,
@@ -29,6 +28,7 @@ impl Validator for IsGitValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codebase::CliCodebase;
     use tempfile::TempDir;
     use std::fs;
 
@@ -36,7 +36,8 @@ mod tests {
     fn passes_when_git_dir_exists() {
         let tmp = TempDir::new().unwrap();
         fs::create_dir(tmp.path().join(".git")).unwrap();
-        let result = IsGitValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = IsGitValidator.check(&cb);
         assert!(result.passed);
         assert_eq!(result.message, "Found .git/ directory");
     }
@@ -44,7 +45,8 @@ mod tests {
     #[test]
     fn fails_when_no_git_dir() {
         let tmp = TempDir::new().unwrap();
-        let result = IsGitValidator.check(tmp.path());
+        let cb = CliCodebase::from_path(tmp.path()).unwrap();
+        let result = IsGitValidator.check(&cb);
         assert!(!result.passed);
         assert!(result.message.contains("not a git repository"));
     }
