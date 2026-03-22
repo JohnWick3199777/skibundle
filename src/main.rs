@@ -1,45 +1,36 @@
-mod bundle;
-mod cli;
-mod codebase;
-mod error;
-mod injected;
-mod inspect;
-mod manifest;
-mod validate;
-
 use clap::Parser;
-use cli::{Cli, Commands};
+use skilib::cli::{Cli, Commands};
+use skilib::error::AppError;
 
 fn main() {
     let cli = Cli::parse();
 
     let result = match &cli.command {
-        Commands::Bundle(args) => bundle::run(args),
+        Commands::Bundle(args) => skilib::bundle::run(args),
         Commands::Validate(args) => validate_cmd::run(args),
-        Commands::Inspect(args) => inspect::run(args),
-        Commands::Version(args) => injected::version::run(args),
-        Commands::Skill(args) => injected::skill::run(args),
+        Commands::Inspect(args) => skilib::inspect::run(args),
+        Commands::Version(args) => skilib::injected::version::run(args),
+        Commands::Skill(args) => skilib::injected::skill::run(args),
     };
 
     if let Err(e) = result {
         eprintln!("error: {e}");
         let code = match e {
-            error::AppError::ValidationFailed { .. } => 1,
-            error::AppError::Io(_) | error::AppError::Json(_) => 3,
-            error::AppError::Other(_) => 3,
+            AppError::ValidationFailed { .. } => 1,
+            AppError::Io(_) | AppError::Json(_) | AppError::Other(_) => 3,
         };
         std::process::exit(code);
     }
 }
 
 mod validate_cmd {
-    use crate::{
+    use colored::Colorize;
+    use skilib::{
         cli::ValidateArgs,
         error::{AppError, Result},
-        manifest::BundleManifest,
+        manifest::{self, BundleManifest},
         validate,
     };
-    use colored::Colorize;
     use std::path::PathBuf;
 
     pub fn run(args: &ValidateArgs) -> Result<()> {
@@ -67,12 +58,10 @@ mod validate_cmd {
     fn validate_manifest(mpath: &PathBuf, strict: bool) -> Result<()> {
         let manifest = BundleManifest::load(mpath)?;
 
-        // Re-run structural checks on recorded codebase path
         let report = validate::run_all(&manifest.codebase_path);
         print_report(&report);
 
-        // Check binary drift
-        let current_sha = crate::manifest::compute_sha256(&manifest.binary_path)?;
+        let current_sha = manifest::compute_sha256(&manifest.binary_path)?;
         if current_sha == manifest.binary_sha256 {
             println!("  {} binary SHA-256 matches manifest", "PASS".green());
         } else {

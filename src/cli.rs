@@ -2,7 +2,7 @@ use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
-#[command(name = "skibundle", version, about = "Bundle and validate CLI codebases")]
+#[command(name = "ski", version, about = "The ski CLI — bundle, validate, and inspect CLI codebases")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
