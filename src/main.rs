@@ -1,14 +1,14 @@
 use clap::Parser;
-use skilib::cli::{Cli, Commands};
-use skilib::error::AppError;
+use skillb::cli::{Cli, Commands};
+use skillb::error::AppError;
 
 fn main() {
     let cli = Cli::parse();
 
     let result = match &cli.command {
-        Commands::Bundle(args) => skilib::bundle::run(args),
+        Commands::Bundle(args) => skillb::bundle::run(args),
         Commands::Validate(args) => validate_cmd::run(args),
-        Commands::Inspect(args) => skilib::inspect::run(args),
+        Commands::Inspect(args) => skillb::inspect::run(args),
     };
 
     if let Err(e) = result {
@@ -23,7 +23,7 @@ fn main() {
 
 mod validate_cmd {
     use colored::Colorize;
-    use skilib::{
+    use skillb::{
         cli::ValidateArgs,
         codebase::CliCodebase,
         error::{AppError, Result},

@@ -4,12 +4,12 @@ use std::path::Path;
 use crate::manifest::BundleManifest;
 
 /// Injected `version` command for bundled CLIs.
-/// `manifest = None` → print skilib version; `Some(path)` → show bundle info.
+/// `manifest = None` → print skillb version; `Some(path)` → show bundle info.
 pub fn run(manifest: Option<&Path>) -> crate::error::Result<()> {
     match manifest {
         None => {
             println!("{} {}", "ski".bold(), env!("CARGO_PKG_VERSION").green());
-            println!("  powered by skilib v{}", env!("CARGO_PKG_VERSION").dimmed());
+            println!(\"  powered by skillb v{}\", env!(\"CARGO_PKG_VERSION\").dimmed());
         }
         Some(path) => {
             let manifest = BundleManifest::load(path)?;

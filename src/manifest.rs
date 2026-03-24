@@ -24,7 +24,7 @@ pub struct BundleManifest {
     pub validators_passed: Vec<String>,
     /// Names of validators that failed during the bundle step.
     pub validators_failed: Vec<String>,
-    /// Sub-commands injected into every bundle by skibundle.
+    /// Sub-commands injected into every bundle by skillb.
     pub injected_commands: Vec<String>,
 }
 
